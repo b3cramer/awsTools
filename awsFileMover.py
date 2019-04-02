@@ -1,27 +1,26 @@
 import boto3
-import os
+from boto.s3.connection import S3Connection
 import sys
 
 
 session = boto3.Session(profile_name='default')
-#client = session.client('s3',
-#                        aws_access_key_id=os.environ.get('KEY'),
-#                        aws_secret_access_key=os.environ.get('SECRET'))
-s3Resource = boto3.resource('s3')
+
+s3 = boto3.resource('s3')
+s3client = boto3.client('s3')
 firstBucketName = sys.argv[1]
+bucket = firstBucketName
 secondBucketName = sys.argv[2]
 threshold = sys.argv[3]
 firstFileName = 'abc.txt'
 
+keys = []
+def findLarge(bucket):
 
-
-#Get keys of objects in firstBucketName that are larger than 50MBself.
-#def findLarge():
-#    largeFiles = []
-#    for key in value:
-#        if value: u'Size' >= 50000000
-#            add to largeFiles
-
+    resp = s3client.list_objects_v2(Bucket=bucket)
+    for key in resp['Contents']:
+        if key['Size'] >= int(threshold):
+            keys.append(key['Key'])
+    return keys
 
 
 def moveLarge(bucketFromName, bucketToName, fileName):
@@ -29,6 +28,9 @@ def moveLarge(bucketFromName, bucketToName, fileName):
         'Bucket': bucketFromName,
         'Key': fileName
     }
-    s3Resource.Object(bucketToName, fileName).copy(copySource)
+    s3.Object(bucketToName, fileName).copy(copySource)
 
-moveLarge(firstBucketName, secondBucketName, firstFileName)
+findLarge(bucket)
+
+for key in keys:
+    moveLarge(firstBucketName, secondBucketName, key)
