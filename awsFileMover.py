@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-
 import boto3
-from boto.s3.connection import S3Connection
 import sys
 
 
-session = boto3.Session(profile_name='default')
+session = boto3.session.Session(profile_name='default')
 
 s3 = boto3.resource('s3')
 s3client = boto3.client('s3')
@@ -17,7 +15,6 @@ firstFileName = 'abc.txt'
 
 keys = []
 def findLarge(bucket):
-
     resp = s3client.list_objects_v2(Bucket=bucket)
     for key in resp['Contents']:
         if key['Size'] >= int(threshold):
